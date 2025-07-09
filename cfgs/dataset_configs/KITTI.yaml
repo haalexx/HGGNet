@@ -1,0 +1,31 @@
+in_npoints: 2048
+dataset : {
+  train : { NAME: PCN,
+            CATEGORY_FILE_PATH: Datasets/ShapeNetCompletion/PCN.json,
+            N_POINTS: 16384,
+            N_RENDERINGS: 8,
+            PARTIAL_POINTS_PATH: Datasets/ShapeNetCompletion/train/partial/%s/%s/%02d.pcd,
+            COMPLETE_POINTS_PATH: Datasets/ShapeNetCompletion/train/complete/%s/%s.pcd,
+            CARS: TRUE,
+            in_npoints: 2048,
+            others: {subset: 'train'}
+  },
+  val : { NAME: PCN,
+          CATEGORY_FILE_PATH: Datasets/ShapeNetCompletion/PCN.json,
+          N_POINTS: 16384,
+          N_RENDERINGS: 8,
+          PARTIAL_POINTS_PATH: Datasets/ShapeNetCompletion/val/partial/%s/%s/%02d.pcd,
+          COMPLETE_POINTS_PATH: Datasets/ShapeNetCompletion/val/complete/%s/%s.pcd,
+          CARS: TRUE,
+          in_npoints: 2048,
+          others: {subset: 'val'}
+  },
+  test : { NAME: KITTI,
+           CATEGORY_FILE_PATH: Datasets/KITTI/KITTI.json,
+           N_POINTS: 16384,
+           CLOUD_PATH: Datasets/KITTI/cars/%s.pcd,
+           BBOX_PATH: Datasets/KITTI/bboxes/%s.txt,
+           in_npoints: 2048,
+           others: {subset: 'test'}
+  }
+}

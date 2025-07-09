@@ -1,0 +1,23 @@
+in_npoints: 2048
+dataset : {
+  train : {NAME: C3D,
+           CATEGORY_FILE_PATH: Datasets/Completion3D/Completion3D.json,
+           PARTIAL_POINTS_PATH: Datasets/Completion3D/train/partial/%s/%s.h5,
+           COMPLETE_POINTS_PATH: Datasets/Completion3D/train/gt/%s/%s.h5,
+           in_npoints: 2048,
+           others: {subset: 'train'}
+  },
+  val : {NAME: C3D,
+         CATEGORY_FILE_PATH: Datasets/Completion3D/Completion3D.json,
+         PARTIAL_POINTS_PATH: Datasets/Completion3D/val/partial/%s/%s.h5,
+         COMPLETE_POINTS_PATH: Datasets/Completion3D/val/gt/%s/%s.h5,
+         in_npoints: 2048,
+         others: {subset: 'val'}
+  },
+  test : {NAME: C3D,
+          CATEGORY_FILE_PATH: Datasets/Completion3D/Completion3D.json,
+          PARTIAL_POINTS_PATH: Datasets/Completion3D/test/partial/all/%s.h5,
+          in_npoints: 2048,
+          others: {subset: 'test'}
+  }
+}

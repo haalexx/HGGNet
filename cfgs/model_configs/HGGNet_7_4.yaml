@@ -1,0 +1,35 @@
+optimizer : {
+  type: AdamW,
+  kwargs: {
+  lr : 0.0002,
+  weight_decay : 0.0005
+}}
+
+scheduler: {
+  type: LambdaLR,
+  kwargs: {
+  decay_step: 16,
+  lr_decay: 0.9,
+  lowest_decay: 0.005  # min lr = lowest_decay * lr
+}}
+
+bnmscheduler: {
+  type: Lambda,
+  kwargs: {
+  decay_step: 10,
+  bn_decay: 0.5,
+  bn_momentum: 0.9,
+  lowest_decay: 0.01
+}}
+
+model: {
+  stage1_npoints: 512,
+  stage2_npoints: 256,
+  stage3_npoints: 128,
+  global_channels: 1024,
+}
+total_bs : 8
+step_per_update : 1
+max_epoch : 600
+
+consider_metric: CDL1

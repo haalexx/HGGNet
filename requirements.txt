@@ -1,0 +1,12 @@
+numpy
+pyyaml
+torch
+tensorboardX
+h5py
+scipy
+transforms3d
+opencv-python
+open3d
+easydict
+matplotlib
+tqdm
