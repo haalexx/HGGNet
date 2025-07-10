@@ -28,7 +28,7 @@ model: {
   stage3_npoints: 128,
   global_channels: 1024,
 }
-total_bs : 8
+total_bs : 2
 step_per_update : 1
 max_epoch : 600
 

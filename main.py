@@ -20,7 +20,7 @@ from pathlib import Path
 def get_args():
     # Training settings
     parser = argparse.ArgumentParser(description='Point Cloud Completion')
-    parser.add_argument('--name', type=str, default='HGGNet_20250626', help='Name of the experiment')
+    parser.add_argument('--name', type=str, default='HGGNet_20250710', help='Name of the experiment')
     parser.add_argument('--project', default='./experiments', help='save to project dir')
     parser.add_argument('--data', type=str, default='./cfgs/dataset_configs/PCN.yaml',
                         help='dataset.yaml path')
@@ -34,7 +34,7 @@ def get_args():
     parser.add_argument('--seed', type=int, default=2, metavar='S', help='random seed (default: 1)')
     parser.add_argument('--test', type=bool, default=True, help='evaluate the model')
     parser.add_argument('--inference', type=bool, default=False, help='inference the point cloud')
-    parser.add_argument('--weights', type=str, default='./checkpoints/ckpt-best.pth', metavar='N', help='Pretrained model path')
+    parser.add_argument('--weights', type=str, default='./checkpoints/HGGNetForPCN.pth', metavar='N', help='Pretrained model path')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--sync_bn', action='store_true', default=False, help='whether to use sync bn')
     parser.add_argument('--val_freq', type=int, default=1, help='test freq')
@@ -72,7 +72,7 @@ def get_args():
 
 def main():
     # get args
-    args = parser.get_args()
+    args = get_args()
 
     # config
     data_config, model_config = get_config(args)
@@ -114,7 +114,7 @@ def main():
 
     # running
     if args.test:
-        test(args, data_config, model_config)
+        test(args, data_config, model_config, logger=logger)
     else:
         # define the tensorboard writer
         if args.local_rank == 0:

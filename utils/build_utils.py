@@ -81,10 +81,10 @@ def save_checkpoint(base_model, optimizer, epoch, metrics, best_metrics, prefix,
         print(f"Save checkpoint at {os.path.join(args.experiment_path, prefix + '.pth')}")
 
 
-def load_model(base_model, ckpt_path):
+def load_model(base_model, ckpt_path, logger=None):
     if not os.path.exists(ckpt_path):
         raise NotImplementedError('no checkpoint file from path %s...' % ckpt_path)
-    logging.info(f'Loading weights from {ckpt_path}...')
+    logger.info(f'Loading weights from {ckpt_path}...')
 
     # load state dict
     state_dict = torch.load(ckpt_path, map_location='cpu')
@@ -106,5 +106,5 @@ def load_model(base_model, ckpt_path):
             metrics = metrics.state_dict()
     else:
         metrics = 'No Metrics'
-    logging.info(f'ckpts @ {epoch} epoch( performance = {str(metrics):s})')
+    logger.info(f'ckpts @ {epoch} epoch( performance = {str(metrics):s})')
     return

@@ -16,7 +16,7 @@ def test(args, data_config, model_config, logger=None):
     logger.info(f"{colorstr('Tester start ...')}")
     _, test_dataloader = Datasets.dataset_builder(args, data_config.dataset.test)
     model = HGGNet(model_config.model)
-    load_model(model, args.weights)
+    load_model(model, args.weights, logger=logger)
     model.cuda()
 
     # DDP
@@ -49,9 +49,9 @@ def test(args, data_config, model_config, logger=None):
                 partial = data[0].cuda()
                 gt = data[1].cuda()
 
-                ret = model(partial)
-                coarse_points = ret[0]
-                dense_points = ret[1]
+                coarse_points, p1, p2, dense_points = model(partial)
+                # coarse_points = ret[0]
+                # dense_points = ret[1]
 
                 sparse_loss_l1 = ChamferDisL1(coarse_points, gt)
                 sparse_loss_l2 = ChamferDisL2(coarse_points, gt)
@@ -134,7 +134,7 @@ def test(args, data_config, model_config, logger=None):
         logger.info('[TEST] Metrics = %s' % (['%.4f' % m for m in test_metrics.avg()]))
 
     # Print testing results
-    shapenet_dict = json.load(open('./Datasets/shapenet_synset_dict.json', 'r'))
+    shapenet_dict = json.load(open('./data/shapenet_synset_dict.json', 'r'))
     logger.info('============================ TEST RESULTS ============================')
     msg = ''
     msg += 'Taxonomy\t'
