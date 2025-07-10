@@ -12,8 +12,8 @@ from extensions.chamfer_dist import ChamferDistanceL1, ChamferDistanceL2
 from utils.infer_utils import savePointCloud, create_output_dir
 
 
-def test(args, data_config, model_config):
-    LOGGER.info(f"{colorstr('Tester start ...')}")
+def test(args, data_config, model_config, logger=None):
+    logger.info(f"{colorstr('Tester start ...')}")
     _, test_dataloader = Datasets.dataset_builder(args, data_config.dataset.test)
     model = HGGNet(model_config.model)
     load_model(model, args.weights)
@@ -131,18 +131,18 @@ def test(args, data_config, model_config):
             return
         for _, v in category_metrics.items():
             test_metrics.update(v.avg())
-        LOGGER.info('[TEST] Metrics = %s' % (['%.4f' % m for m in test_metrics.avg()]))
+        logger.info('[TEST] Metrics = %s' % (['%.4f' % m for m in test_metrics.avg()]))
 
     # Print testing results
     shapenet_dict = json.load(open('./Datasets/shapenet_synset_dict.json', 'r'))
-    LOGGER.info('============================ TEST RESULTS ============================')
+    logger.info('============================ TEST RESULTS ============================')
     msg = ''
     msg += 'Taxonomy\t'
     msg += '#Sample\t'
     for metric in test_metrics.items:
         msg += metric + '\t'
     msg += '#ModelName\t'
-    LOGGER.info(msg)
+    logger.info(msg)
 
     for taxonomy_id in category_metrics:
         msg = ''
@@ -151,25 +151,25 @@ def test(args, data_config, model_config):
         for value in category_metrics[taxonomy_id].avg():
             msg += '%.3f \t' % value
         msg += shapenet_dict[taxonomy_id] + '\t'
-        LOGGER.info(msg)
+        logger.info(msg)
 
     msg = ''
     msg += 'Overall \t\t'
     for value in test_metrics.avg():
         msg += '%.3f \t' % value
-    LOGGER.info(msg)
+    logger.info(msg)
 
-    LOGGER.info('================ Best Model ===================')
+    logger.info('================ Best Model ===================')
     msg = ''
     msg += 'Taxonomy\t'
     msg += '#Sample'
-    LOGGER.info(msg)
+    logger.info(msg)
 
     for taxonomy_id in best_model:
         msg = ''
         msg += (taxonomy_id + '\t')
         msg += best_model[taxonomy_id]
-        LOGGER.info(msg)
+        logger.info(msg)
 
     return
 
