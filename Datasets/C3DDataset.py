@@ -2,7 +2,7 @@ import torch.utils.data as data
 import numpy as np
 import os
 import sys
-import dataLoaders.dataTransforms as dataTransforms
+import Datasets.dataTransforms as dataTransforms
 from .readData import readData
 import random
 import json

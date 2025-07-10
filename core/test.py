@@ -1,4 +1,4 @@
-import dataLoaders
+import Datasets
 import json
 from tqdm import tqdm
 import torch
@@ -14,7 +14,7 @@ from utils.infer_utils import savePointCloud, create_output_dir
 
 def test(args, data_config, model_config):
     LOGGER.info(f"{colorstr('Tester start ...')}")
-    _, test_dataloader = dataLoaders.dataset_builder(args, data_config.dataset.test)
+    _, test_dataloader = Datasets.dataset_builder(args, data_config.dataset.test)
     model = HGGNet(model_config.model)
     load_model(model, args.weights)
     model.cuda()

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import time
-import dataLoaders
+import Datasets
 import utils.dist_utils as dist_utils
 from models import HGGNet
 from utils import misc
@@ -12,14 +12,14 @@ import logging
 from utils.build_utils import build_opti_sche, resume_model, resume_optimizer, load_model, save_checkpoint
 from utils.AverageMeter import AverageMeter
 from extensions.chamfer_dist import ChamferDistanceL1, ChamferDistanceL2
-from core.val import validate
+from core.val_7_7 import validate
 
 
-def train(args, data_config, model_config, train_writer, val_writer):
+def train(args, data_config, model_config, train_writer, val_writer, logger=None):
     weights = args.weights
     # build dataset
-    train_sampler, train_dataloader = dataLoaders.dataset_builder(args, data_config.dataset.train)
-    _, test_dataloader = dataLoaders.dataset_builder(args, data_config.dataset.val)
+    train_sampler, train_dataloader = Datasets.dataset_builder(args, data_config.dataset.train)
+    _, test_dataloader = Datasets.dataset_builder(args, data_config.dataset.val)
 
     # parameter setting
     start_epoch = 0
@@ -37,7 +37,7 @@ def train(args, data_config, model_config, train_writer, val_writer):
         csd = intersect_dicts(csd, model.state_dict())  # intersect
         model.load_state_dict(csd, strict=False)  # load
         model.cuda()                # to cuda
-        logging.info(f'Transferred {len(csd)}/{len(model.state_dict())} items from {weights}')  # report
+        print_log(f'Transferred {len(csd)}/{len(model.state_dict())} items from {weights}', logger=logger)  # report
     elif args.resume:    # resume ckpts
         model = HGGNet(model_config.model)  # create
         start_epoch, best_metrics = resume_model(model, args.resume_weights, args)
@@ -51,12 +51,12 @@ def train(args, data_config, model_config, train_writer, val_writer):
         # Sync BN
         if args.sync_bn:
             model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
-            logging.info('Using Synchronized BatchNorm ...')
+            print_log('Using Synchronized BatchNorm ...', logger=logger)
         model = nn.parallel.DistributedDataParallel(model, device_ids=[args.local_rank % torch.cuda.device_count()],
                                                     find_unused_parameters=True)
-        logging.info(f"{colorstr('Using Distributed Data parallel ...')}")
+        print_log("Using Distributed Data parallel ...", logger=logger)
     else:
-        logging.info(f"{colorstr('Using Data parallel ...')}")
+        print_log("Using Data parallel ...", logger=logger)
         model = nn.DataParallel(model).cuda()
 
     # optimizer & scheduler
@@ -80,9 +80,9 @@ def train(args, data_config, model_config, train_writer, val_writer):
         batch_start_time = time.time()
         batch_time = AverageMeter()
         data_time = AverageMeter()
-        losses = AverageMeter(['SparseLoss', 'DenseLoss'])
+        losses = AverageMeter(['CoarseLoss', 'P1Loss', 'P2Loss', 'DenseLoss'])
 
-        logging.info('========================= Epoach: %d ==============================='% epoch)
+        print_log('========================= Epoach: %d ==============================='% epoch, logger=logger)
 
         num_iter = 0
 
@@ -116,10 +116,10 @@ def train(args, data_config, model_config, train_writer, val_writer):
                     raise exception
 
             # sparse_loss, dense_loss, tran_loss = model.module.get_loss(ret, gt, partial)
-            sparse_loss, dense_loss = model.module.get_loss(ret, gt)
+            coarse_loss, p1_loss, p2_loss, p3_loss = model.module.get_loss(ret, gt)
 
             # _loss = dense_loss + alpha*sparse_loss + beta*tran_loss
-            _loss = dense_loss + alpha*sparse_loss
+            _loss = coarse_loss + p1_loss + p2_loss + p3_loss
             _loss.backward()
 
             # forward
@@ -129,27 +129,29 @@ def train(args, data_config, model_config, train_writer, val_writer):
                 model.zero_grad()
 
             if args.distributed:
-                sparse_loss = dist_utils.reduce_tensor(sparse_loss, args)
-                dense_loss = dist_utils.reduce_tensor(dense_loss, args)
-                losses.update([sparse_loss.item()*1000, dense_loss.item()*1000])
+                coarse_loss = dist_utils.reduce_tensor(coarse_loss, args)
+                p1_loss = dist_utils.reduce_tensor(p1_loss, args)
+                p2_loss = dist_utils.reduce_tensor(p2_loss, args)
+                p3_loss = dist_utils.reduce_tensor(p3_loss, args)
+                losses.update([coarse_loss.item()*1000, p1_loss.item()*1000, p2_loss.item()*1000, p3_loss.item()*1000])
             else:
-                losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000])
+                losses.update([coarse_loss.item()*1000, p1_loss.item()*1000, p2_loss.item()*1000, p3_loss.item()*1000])
 
             if args.distributed:
                 torch.cuda.synchronize()
 
             n_itr = epoch * n_batches + idx
             if train_writer is not None:
-                train_writer.add_scalar('Loss/Batch/Sparse', sparse_loss.item() * 1000, n_itr)
-                train_writer.add_scalar('Loss/Batch/Dense', dense_loss.item() * 1000, n_itr)
+                train_writer.add_scalar('Loss/Batch/Coarse', coarse_loss.item() * 1000, n_itr)
+                train_writer.add_scalar('Loss/Batch/Dense', p3_loss.item() * 1000, n_itr)
 
             batch_time.update(time.time() - batch_start_time)
             batch_start_time = time.time()
 
-            if args.rank in [-1, 0] and (idx % 20 == 0):
-                print('epoch:%d/%d, data:%d/%d, sparse_loss:%.2f, dense_loss:%.2f, lr:%.8f' % (
+            if args.local_rank in [-1, 0] and (idx % 20 == 0):
+                print('epoch:%d/%d, data:%d/%d, coarse_loss:%.2f, p1_loss:%.2f, p2_loss:%.2f, dense_loss:%.2f, lr:%.8f' % (
                     epoch, model_config.max_epoch, idx, n_batches,
-                    losses.val(0), losses.val(1), optimizer.param_groups[0]['lr'])
+                    losses.val(0), losses.val(1), losses.val(2), losses.val(3), optimizer.param_groups[0]['lr'])
                     )
 
         if isinstance(scheduler, list):
@@ -160,15 +162,15 @@ def train(args, data_config, model_config, train_writer, val_writer):
         epoch_end_time = time.time()
 
         if train_writer is not None:
-            train_writer.add_scalar('Loss/Epoch/Sparse', losses.avg(0), epoch)
-            train_writer.add_scalar('Loss/Epoch/Dense', losses.avg(1), epoch)
-        logging.info('[Training] EPOCH: %d EpochTime = %.3f (s) Losses = %s' %
-                    (epoch, epoch_end_time - epoch_start_time, ['%.4f' % loss for loss in losses.avg()]))
+            train_writer.add_scalar('Loss/Epoch/Coarse', losses.avg(0), epoch)
+            train_writer.add_scalar('Loss/Epoch/Dense', losses.avg(3), epoch)
+        print_log('[Training] EPOCH: %d EpochTime = %.3f (s) Losses = %s' %
+                    (epoch, epoch_end_time - epoch_start_time, ['%.4f' % loss for loss in losses.avg()]), logger=logger)
 
         if epoch % args.val_freq == 0 and epoch != 0:
             # Validate the current model
             metrics = validate(model, test_dataloader, epoch, ChamferDisL1, ChamferDisL2, val_writer, args, data_config,
-                               model_config)
+                               model_config, logger=logger)
 
             # Save ckeckpoints
             if metrics.better_than(best_metrics):
@@ -181,11 +183,13 @@ def train(args, data_config, model_config, train_writer, val_writer):
                 msg = 'Best Result\t\t\t\t\t'
                 for key, value in best_dict.items():
                     msg += '%.3f \t' % value
-                logging.info(msg)
+                print_log(msg, logger=logger)
 
         save_checkpoint(model, optimizer, epoch, metrics, best_metrics, 'ckpt-last', args)
         if (model_config.max_epoch - epoch) < 3:
             save_checkpoint(model, optimizer, epoch, metrics, best_metrics, f'ckpt-epoch-{epoch:03d}', args)
+        
+        torch.cuda.empty_cache()
 
 
     if train_writer is not None:

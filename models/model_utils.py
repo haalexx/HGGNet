@@ -1090,7 +1090,6 @@ class DeformableLocalCrossAttention(nn.Module):
         return out
 
 
-
 class DynamicGraphAttention(nn.Module):
     r''' DynamicGraphAttention for self attn or cross attn
         Query a local region for each token (k x C) and then perform Conv2d with maxpooling to build the graph feature for each token
@@ -1173,7 +1172,6 @@ class DynamicGraphAttention(nn.Module):
             assert out.size(1) == N
             assert out.size(2) == C
         return out
-
 
 
 class improvedDeformableLocalGraphAttention(nn.Module):

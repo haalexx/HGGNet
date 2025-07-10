@@ -1,6 +1,6 @@
 import torch
 from utils.build_utils import load_model
-from dataLoaders.readData import readData
+from Datasets.readData import readData
 from models.HGGNet import HGGNet
 from utils.config import cfg_from_yaml_file
 from utils.infer_utils import inferDataInit, pointVisualize

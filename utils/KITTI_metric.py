@@ -1,6 +1,6 @@
 import os
 import yaml
-from dataLoaders.datasetBuilder import build_dataset_from_cfg
+from Datasets.datasetBuilder import build_dataset_from_cfg
 
 from easydict import EasyDict
 import argparse

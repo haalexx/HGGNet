@@ -3,7 +3,7 @@ import numpy as np
 import os, sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
-import dataLoaders.dataTransforms as dataTransforms
+import Datasets.dataTransforms as dataTransforms
 from .readData import readData
 import json
 from .datasetBuilder import DATASETS
