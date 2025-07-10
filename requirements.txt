@@ -10,3 +10,4 @@ open3d
 easydict
 matplotlib
 tqdm
+einops

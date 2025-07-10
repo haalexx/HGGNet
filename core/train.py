@@ -12,7 +12,7 @@ import logging
 from utils.build_utils import build_opti_sche, resume_model, resume_optimizer, load_model, save_checkpoint
 from utils.AverageMeter import AverageMeter
 from extensions.chamfer_dist import ChamferDistanceL1, ChamferDistanceL2
-from core.val_7_7 import validate
+from core.val import validate
 
 
 def train(args, data_config, model_config, train_writer, val_writer, logger=None):
