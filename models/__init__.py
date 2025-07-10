@@ -1,1 +1,1 @@
-from .HGGNet_7_22 import HGGNet
+from .HGGNet import HGGNet
