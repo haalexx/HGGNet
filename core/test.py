@@ -159,17 +159,17 @@ def test(args, data_config, model_config, logger=None):
         msg += '%.3f \t' % value
     logger.info(msg)
 
-    logger.info('================ Best Model ===================')
-    msg = ''
-    msg += 'Taxonomy\t'
-    msg += '#Sample'
-    logger.info(msg)
-
-    for taxonomy_id in best_model:
-        msg = ''
-        msg += (taxonomy_id + '\t')
-        msg += best_model[taxonomy_id]
-        logger.info(msg)
+    # logger.info('================ Best Model ===================')
+    # msg = ''
+    # msg += 'Taxonomy\t'
+    # msg += '#Sample'
+    # logger.info(msg)
+    #
+    # for taxonomy_id in best_model:
+    #     msg = ''
+    #     msg += (taxonomy_id + '\t')
+    #     msg += best_model[taxonomy_id]
+    #     logger.info(msg)
 
     return
 

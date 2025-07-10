@@ -6,7 +6,7 @@ Place weight files (*.pth) in this directory
 
 ## PCN Dataset 
 
-weight file: HGGNetForPCN.pth
+weight file: HGGNetForPCN.pth (https://drive.google.com/file/d/108CwrcGAnh0RS1GRokctIKZVlkBWLqNR/view?usp=drive_link)
 
 ============================ TEST RESULTS ============================
  Taxonomy	#Sample	F-Score	CDL1	CDL2	#ModelName	
