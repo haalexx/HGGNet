@@ -14,7 +14,7 @@ We first publicly release some of the test code.
 
 ## PCN Dataset
 
-weight: HGGNetForPCN.pth (https://drive.google.com/file/d/108CwrcGAnh0RS1GRokctIKZVlkBWLqNR/view?usp=drive_link)
+weight: HGGNetForPCN.pth ([https://drive.google.com/file/d/108CwrcGAnh0RS1GRokctIKZVlkBWLqNR/view?usp=drive_link](https://drive.google.com/file/d/1hRO3sGDrNXedOzHHiRkR1vduCAoWgvKI/view?usp=sharing))
 
 ============================ TEST RESULTS ============================
 
